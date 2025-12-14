@@ -1,0 +1,13 @@
+Geometry Elements List:  
+1. Point(0.00, 0.00) - center  
+2. Circle(radius=50.00)  
+3. Point(50.00, 0.00) - moving  
+
+Geometry Relations List:  
+1. on_circle  
+   - Start: Point(50.00, 0.00)  
+   - End: Circle(radius=50.00)  
+2. distance  
+   - Start: Point(0.00, 0.00)  
+   - End: Point(50.00, 0.00)  
+   - Value: 50.00

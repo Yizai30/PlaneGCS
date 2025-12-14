@@ -1,0 +1,29 @@
+{
+  "name": "planegcs",
+  "version": "1.0.0",
+  "description": "PlaneGCS - 2D Geometric Constraint Solver with LLM Integration",
+  "homepage": "https://github.com/your-username/PlaneGCS",
+  "dependencies": [
+    {
+      "name": "eigen3",
+      "version>=": "3.4.0"
+    },
+    {
+      "name": "boost-locale",
+      "version>=": "1.82.0"
+    },
+    {
+      "name": "boost-graph",
+      "version>=": "1.82.0"
+    },
+    {
+      "name": "curl",
+      "version>=": "8.0.1"
+    },
+    {
+      "name": "cpprestsdk",
+      "version>=": "2.10.19"
+    }
+  ],
+  "builtin-baseline": "5dfa11cf88a8da8877b54fcbc5f6db78bc13f75a"
+}
