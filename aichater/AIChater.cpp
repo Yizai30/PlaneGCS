@@ -186,17 +186,8 @@ std::string AIChater::callDeepseekChat(std::string promptString) {
     web::json::value userMessage;
     userMessage[U("role")] = web::json::value(U("user"));
 
-    // 简单的ASCII转换，避免UTF-16代理对问题
-    std::wstring widePrompt;
-    for (char c : promptString) {
-        if ((c & 0x80) == 0) {
-            // ASCII字符
-            widePrompt += static_cast<wchar_t>(c);
-        } else {
-            // 非ASCII字符替换为?
-            widePrompt += L'?';
-        }
-    }
+    // Proper UTF-8 to UTF-16 conversion
+    std::wstring widePrompt = utf8ToWstring(promptString);
 
     userMessage[U("content")] = web::json::value(widePrompt);
     messages[0] = userMessage;
@@ -228,17 +219,8 @@ std::string AIChater::callDeepseekChat(std::string promptString) {
             {
                 auto content = choices[0][U("message")][U("content")].as_string();
 
-                // 简单的ASCII转换，避免UTF-16代理对问题
-                std::string utf8_result;
-                for (wchar_t wc : content) {
-                    if (wc < 128) {
-                        utf8_result += static_cast<char>(wc);
-                    } else {
-                        utf8_result += '?';
-                    }
-                }
-
-                ret = utf8_result;
+                // Proper UTF-16 to UTF-8 conversion
+                ret = wstringToUTF8(content);
 
                 std::cout << "LLM response length: " << ret.length() << std::endl;
                 std::cout << "LLM response content: " << ret << std::endl;

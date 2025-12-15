@@ -395,37 +395,44 @@ public:
         // TaskDetail - 使用现有的buildStateToPrompt
         prompt << ai_chater.taskDetailPrompts_[TaskDetail::GEO_GRAPH_EXTRACT_DETAIL] << "\n\n";
 
-        // 添加当前几何图信息 (Add current geometry graph information)
-        prompt << "### TaskDetail\n";
-        //prompt << "=== 当前几何图状态 ===\n";  // Current geometry graph state
-        prompt << "=== current geometry graph structure ===\n";
+        // OutputFormat
+        prompt << ai_chater.taskOutputFormatPrompts_[OutputFormat::GEO_GRAPH_EXTRACT_OUTPUT_FORMAT] << "\n\n";
+
+        // 使用AIChater的示例作为参考 (Use AIChater example as reference)
+        prompt << ai_chater.taskExamplePrompts_[TaskExample::GEO_GRAPH_EXTRACT_EXAMPLE];
+
+        // Add Question section after TaskExample with previous geometry graph concepts and new content
+        prompt << "\n\n### Question\n";
+        prompt << "**NewContent**:\n";
+        prompt << ai_chater.newContent << "\n\n";
+
+        prompt << "**CurGraph**:\n";
         prompt << "Geometry Elements List:\n";
         int element_id = 1;
+        std::map<int, std::string> element_names;
 
+        // First pass: collect element names
         for (const auto& node : current_graph.getNodes()) {
-            prompt << element_id << ".";
             switch (node->getType()) {
                 case POINT:
-                    //prompt << "点(" << fixed << setprecision(2) << node->getX() << ", " << node->getY() << ")";  // Point
-                    prompt << "Point(" << fixed << setprecision(2) << node->getX() << ", " << node->getY() << ")";
-                    if (node->getAttributes().hasText("role")) {
-                        prompt << " - " << node->getAttributes().getText("role");
-                    }
+                    element_names[element_id] = "Point";
                     break;
                 case CIRCLE:
-                    prompt << "Circle(radius=" << fixed << setprecision(2) << node->getRadius() << ")";
+                    element_names[element_id] = "Circle";
                     break;
                 case LINE:
-                    //prompt << "线段";  // Line segment
-                    prompt << "Line";
+                    element_names[element_id] = "Line";
                     break;
                 default:
-                    //prompt << "未知几何元素";  // Unknown geometry element
-                    prompt << "Unknown geometry element";
+                    element_names[element_id] = "Element";
                     break;
             }
-            prompt << endl;
             element_id++;
+        }
+
+        // Output elements with numbers
+        for (const auto& [id, name] : element_names) {
+            prompt << id << "." << name << "\n";
         }
 
         prompt << "Geometry Relations List:\n";
@@ -434,48 +441,22 @@ public:
             prompt << relation_id << ".";
             switch (edge->getRelationType()) {
                 case P2P_DISTANCE:
-                    //prompt << "距离约束 - 点" << edge->getNode1Id() << "到点" << edge->getNode2Id();  // Distance constraint - point X to point Y
-                    prompt << "distance constraint - point" << edge->getNode1Id() << "to point" << edge->getNode2Id();
-                    if (edge->getAttributes().hasNumeric("distance")) {
-                        prompt << " distance=" << edge->getAttributes().getNumeric("distance");
-                    }
+                    prompt << "distance_constraint";
                     break;
                 case POINT_ON_CIRCLE:
-                    prompt << "on_circle - point" << edge->getNode1Id() << "on_circle" << edge->getNode2Id();
+                    prompt << "on_circle";
                     break;
                 default:
-                    prompt << "GeometryRelation";
+                    prompt << "relation";
                     break;
             }
-            prompt << endl;
+            prompt << "\n";
+            prompt << "- Start: Element" << edge->getNode1Id() << "\n";
+            prompt << "- End: Element" << edge->getNode2Id() << "\n";
             relation_id++;
         }
 
-        // 添加NewContent (Add new content)
-        prompt << "=== new content analysis ===\n";
-        prompt << "**NewContent**:\n";
-        prompt << ai_chater.newContent << "\n\n";
-
-        // 使用AIChater的问题格式 (Use AIChater question format)
-        prompt << "**CurGraph**:\n";
-        prompt << "Geometry Elements List:\n";  // Simplified representation
-        for (const auto& node : current_graph.getNodes()) {
-            if (node->getType() == CIRCLE) {
-                prompt << "Circle\n";
-            }
-            if (node->getType() == POINT) {
-                prompt << "Point\n";
-            }
-        }
-        prompt << "Geometry Relations List:\n";
-
-        prompt << "**NewGraph**:\n";
-
-        // OutputFormat
-        prompt << ai_chater.taskOutputFormatPrompts_[OutputFormat::GEO_GRAPH_EXTRACT_OUTPUT_FORMAT] << "\n\n";
-
-        // 使用AIChater的示例作为参考 (Use AIChater example as reference)
-        prompt << ai_chater.taskExamplePrompts_[TaskExample::GEO_GRAPH_EXTRACT_EXAMPLE];
+        prompt << "**NewGraph**:\n\n";
 
         cout << "Sending prompt to LLM with length: " << prompt.str().length() << " characters" << endl;
 
@@ -1202,12 +1183,12 @@ public:
 
         // 模拟解决方案内容
         vector<string> solution_contents = {
-            "将动点顺时针旋转30度",
-            "继续旋转到90度位置",
+            "Move the point clockwise by 30 degrees",  // 将动点顺时针旋转30度
+            "Continue rotating to 90 degree position",  // 继续旋转到90度位置
             "scale up circle to 1.2x",
-            "旋转到180度位置",
-            "缩小回原始大小",
-            "回到起点位置"
+            "Rotate to 180 degree position",  // 旋转到180度位置
+            "Scale down to original size",  // 缩小回原始大小
+            "Return to starting position"  // 回到起点位置
         };
 
         cout << "解决方案内容数量: " << solution_contents.size() << endl;
