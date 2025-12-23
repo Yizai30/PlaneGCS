@@ -69,31 +69,6 @@ if(MSVC)
     target_compile_options(PlaneGCS PRIVATE /W3)
 endif()
 
-# 数学动画演示
-add_executable(math_animation_demo)
-target_sources(math_animation_demo PRIVATE
-    examples/math_animation_demo.cpp
-)
-target_link_libraries(math_animation_demo PlaneGCS)
-
-# LLM 几何动画演示（主要示例）
-#add_executable(llm_geometry_animation)
-#target_sources(llm_geometry_animation PRIVATE
-#    examples/llm_geometry_animation.cpp
-#    aichater/AIChater.cpp
-#    models_for_test/IterationState.cpp
-#)
-
-# 链接LLM几何动画的依赖库
-#target_link_libraries(llm_geometry_animation
-#    PlaneGCS
-#    Eigen3::Eigen
-#    Boost::boost
-#    Boost::locale
-#    CURL::libcurl
-#    cpprestsdk::cpprest
-#)
-
 # 添加解决方案到动画关键帧演示程序
 add_executable(solution_to_keyframes_demo
     examples/solution_to_keyframes_demo.cpp
@@ -113,9 +88,7 @@ target_link_libraries(solution_to_keyframes_demo
 )
 
 # 设置可执行文件的编译选项
-foreach(target math_animation_demo 
-    #llm_geometry_animation
-    solution_to_keyframes_demo)
+foreach(target solution_to_keyframes_demo)
     if(MSVC)
         target_compile_definitions(${target} PRIVATE
             _CRT_SECURE_NO_WARNINGS
