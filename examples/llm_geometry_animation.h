@@ -142,6 +142,7 @@ public:
     int getId() const { return id; }
     GeometryType getType() const { return type; }
     GeometryAttributes& getAttributes() { return attributes; }
+    const GeometryAttributes& getAttributes() const { return attributes; }
 
     // 获取PlaneGCS几何对象
     GCS::Point* getPoint() { return point_ptr.get(); }
@@ -296,6 +297,14 @@ public:
         return nullptr;
     }
 
+    // const版本的getNode方法
+    const GeometryNode* getNode(int node_id) const {
+        for (auto& node : nodes) {
+            if (node->getId() == node_id) return node.get();
+        }
+        return nullptr;
+    }
+
     GeometryEdge* getEdge(int edge_id) {
         for (auto& edge : edges) {
             if (edge->getId() == edge_id) return edge.get();
@@ -411,28 +420,31 @@ public:
         int element_id = 1;
         std::map<int, std::string> element_names;
 
-        // First pass: collect element names
+        // Output elements with their actual names from LLM parsing
         for (const auto& node : current_graph.getNodes()) {
-            switch (node->getType()) {
-                case POINT:
-                    element_names[element_id] = "Point";
-                    break;
-                case CIRCLE:
-                    element_names[element_id] = "Circle";
-                    break;
-                case LINE:
-                    element_names[element_id] = "Line";
-                    break;
-                default:
-                    element_names[element_id] = "Element";
-                    break;
-            }
-            element_id++;
-        }
+            prompt << element_id << ".";
 
-        // Output elements with numbers
-        for (const auto& [id, name] : element_names) {
-            prompt << id << "." << name << "\n";
+            // Use the name attribute if available, otherwise fallback to type name
+            if (node->getAttributes().hasText("name")) {
+                prompt << node->getAttributes().getText("name");
+            } else {
+                switch (node->getType()) {
+                    case POINT:
+                        prompt << "Point";
+                        break;
+                    case CIRCLE:
+                        prompt << "Circle";
+                        break;
+                    case LINE:
+                        prompt << "Line";
+                        break;
+                    default:
+                        prompt << "Element";
+                        break;
+                }
+            }
+            prompt << "\n";
+            element_id++;
         }
 
         prompt << "Geometry Relations List:\n";
@@ -451,8 +463,23 @@ public:
                     break;
             }
             prompt << "\n";
-            prompt << "- Start: Element" << edge->getNode1Id() << "\n";
-            prompt << "- End: Element" << edge->getNode2Id() << "\n";
+
+            // Use actual node names for Start/End
+            auto* startNode = current_graph.getNode(edge->getNode1Id());
+            auto* endNode = current_graph.getNode(edge->getNode2Id());
+
+            if (startNode && startNode->getAttributes().hasText("name")) {
+                prompt << "- Start: " << startNode->getAttributes().getText("name") << "\n";
+            } else {
+                prompt << "- Start: Element" << edge->getNode1Id() << "\n";
+            }
+
+            if (endNode && endNode->getAttributes().hasText("name")) {
+                prompt << "- Target: " << endNode->getAttributes().getText("name") << "\n";
+            } else {
+                prompt << "- Target: Element" << edge->getNode2Id() << "\n";
+            }
+
             relation_id++;
         }
 
@@ -764,7 +791,7 @@ private:
     GeometryGraph parseLLMGeometryGraphResponse(const string& llm_response, const GeometryGraph& current_graph) {
         GeometryGraph new_graph;
 
-        // 首先复制当前几何图的所有元素到新图
+        // 首先复制当前几何图的所有元素到新图（但不复制关系）
         for (const auto& node : current_graph.getNodes()) {
             int new_id = new_graph.addNode(node->getType());
             auto* new_node = new_graph.getNode(new_id);
@@ -773,53 +800,219 @@ private:
             new_node->getAttributes() = node->getAttributes();
         }
 
-        for (const auto& edge : current_graph.getEdges()) {
-            new_graph.addEdge(edge->getNode1Id(), edge->getNode2Id(), edge->getRelationType());
-            auto* new_edge = new_graph.getEdges().back().get();
-            new_edge->getAttributes() = edge->getAttributes();
+        // 注意：不复制当前几何图的关系，而是从LLM响应中完全重建关系
+        // 这样可以确保Geometry Relations List在每一轮都得到更新
+
+        // 创建节点名称到ID的映射
+        map<string, int> name_to_id_map;
+        for (const auto& node : new_graph.getNodes()) {
+            if (node->getAttributes().hasText("name")) {
+                name_to_id_map[node->getAttributes().getText("name")] = node->getId();
+            }
         }
 
         // 解析LLM响应中的几何元素更新
-        istringstream response_stream(llm_response);
-        string line;
-        bool in_elements = false;
-        bool in_relations = false;
-        int element_counter = 1;
+        // 提取NewGraph部分
+        size_t newgraph_start = llm_response.find("**NewGraph**:");
+        if (newgraph_start != string::npos) {
+            // 找到NewGraph部分的开始位置（跳过标题）
+            newgraph_start = llm_response.find("\n", newgraph_start);
+            if (newgraph_start != string::npos) {
+                newgraph_start++;
 
-        while (getline(response_stream, line)) {
-            // 去除行首尾空白
-            line.erase(0, line.find_first_not_of(" \t\r\n"));
-            line.erase(line.find_last_not_of(" \t\r\n") + 1);
+                // 找到下一个主要章节的开始位置（RAW_JSON或=== End of Round）
+                size_t next_section = llm_response.find("RAW_JSON", newgraph_start);
+                if (next_section == string::npos) {
+                    next_section = llm_response.find("=== End of Round", newgraph_start);
+                }
+                string newgraph_section = llm_response.substr(newgraph_start,
+                    (next_section != string::npos) ? next_section - newgraph_start : string::npos);
 
-            if (line.find("Geometry Elements List") != string::npos) {
-                in_elements = true;
-                in_relations = false;
-                element_counter = 1;
-                continue;
+                istringstream section_stream(newgraph_section);
+                string line;
+                bool in_elements = false;
+                bool in_relations = false;
+                int element_counter = 1;
+
+                while (getline(section_stream, line)) {
+                    // 去除行首尾空白
+                    line.erase(0, line.find_first_not_of(" \t\r\n"));
+                    line.erase(line.find_last_not_of(" \t\r\n") + 1);
+
+                    if (line.find("Geometry Elements List") != string::npos) {
+                        in_elements = true;
+                        in_relations = false;
+                        element_counter = 1;
+                        continue;
+                    }
+
+                    if (line.find("Geometry Relations List") != string::npos) {
+                        in_elements = false;
+                        in_relations = true;
+                        continue;
+                    }
+
+                    // 解析几何元素行，例如："1. Point (original_point)"
+                    if (in_elements && !line.empty()) {
+                        size_t dot_pos = line.find('.');
+                        if (dot_pos != string::npos && dot_pos < line.length() - 1) {
+                            string element_part = line.substr(dot_pos + 1);
+                            element_part.erase(0, element_part.find_first_not_of(" \t"));
+                            element_part.erase(element_part.find_last_not_of(" \t") + 1);
+
+                            // 解析几何类型
+                            GeometryType geom_type = POINT; // 默认类型
+                            if (element_part.find("Circle") != string::npos || element_part.find("circle") != string::npos) {
+                                geom_type = CIRCLE;
+                            } else if (element_part.find("Line") != string::npos || element_part.find("line") != string::npos) {
+                                geom_type = LINE;
+                            } else if (element_part.find("Point") != string::npos || element_part.find("point") != string::npos) {
+                                geom_type = POINT;
+                            } else {
+                                // 对于其他类型（如Rotation_angle等），作为Point处理
+                                geom_type = POINT;
+                            }
+
+                            int node_id;
+
+                            // 总是创建新节点或查找现有节点
+                            auto existing_it = name_to_id_map.find(element_part);
+                            if (existing_it != name_to_id_map.end()) {
+                                // 节点已存在，使用现有ID
+                                node_id = existing_it->second;
+                            } else {
+                                // 创建新节点
+                                node_id = new_graph.addNode(geom_type);
+                                auto* new_node = new_graph.getNode(node_id);
+                                if (new_node) {
+                                    new_node->getAttributes().setText("name", element_part);
+                                    // 设置默认位置和属性
+                                    new_node->setPosition(0.0, 0.0);
+                                    if (geom_type == CIRCLE) {
+                                        new_node->setRadius(50.0);
+                                    }
+                                }
+                                // 更新名称映射
+                                name_to_id_map[element_part] = node_id;
+                            }
+
+                            element_counter++;
+                        }
+                    }
+
+                    // 解析关系行，例如："1. on_circle"
+                    if (in_relations && !line.empty()) {
+                        size_t dot_pos = line.find('.');
+                        if (dot_pos != string::npos && dot_pos < line.length() - 1) {
+                            string relation_part = line.substr(dot_pos + 1);
+                            relation_part.erase(0, relation_part.find_first_not_of(" \t"));
+                            relation_part.erase(relation_part.find_last_not_of(" \t") + 1);
+
+                            // 解析关系类型
+                            RelationType rel_type = P2P_DISTANCE; // 默认类型
+                            if (relation_part.find("on_circle") != string::npos) {
+                                rel_type = POINT_ON_CIRCLE;
+                            } else if (relation_part.find("tangent") != string::npos) {
+                                rel_type = TANGENT;
+                            } else if (relation_part.find("perpendicular") != string::npos) {
+                                rel_type = PERPENDICULAR;
+                            } else if (relation_part.find("parallel") != string::npos) {
+                                rel_type = PARALLEL;
+                            } else if (relation_part.find("distance") != string::npos || relation_part.find("distance_constraint") != string::npos) {
+                                rel_type = P2P_DISTANCE;
+                            } else if (relation_part.find("rotation") != string::npos) {
+                                rel_type = P2P_DISTANCE; // 旋转关系作为距离约束处理
+                            } else {
+                                // 对于其他关系类型，作为距离约束处理
+                                rel_type = P2P_DISTANCE;
+                            }
+
+                            // 继续读取下一行来获取Start信息
+                            string start_line, end_line;
+                            string start_node_name, end_node_name;
+
+                            // 读取Start行
+                            if (getline(section_stream, start_line)) {
+                                start_line.erase(0, start_line.find_first_not_of(" \t\r\n"));
+                                start_line.erase(start_line.find_last_not_of(" \t\r\n") + 1);
+                                if (start_line.find("Start:") != string::npos || start_line.find("- Start:") != string::npos) {
+                                    size_t colon_pos = start_line.find("Start:");
+                                    if (colon_pos != string::npos) {
+                                        start_node_name = start_line.substr(colon_pos + 6);
+                                        start_node_name.erase(0, start_node_name.find_first_not_of(" \t"));
+                                        start_node_name.erase(start_node_name.find_last_not_of(" \t") + 1);
+                                    }
+                                }
+                            }
+
+                            // 读取End/Target行
+                            if (getline(section_stream, end_line)) {
+                                end_line.erase(0, end_line.find_first_not_of(" \t\r\n"));
+                                end_line.erase(end_line.find_last_not_of(" \t\r\n") + 1);
+                                if (end_line.find("- Target:") != string::npos || end_line.find("Target:") != string::npos) {
+                                    size_t colon_pos = end_line.find("Target:");
+                                    if (colon_pos != string::npos) {
+                                        end_node_name = end_line.substr(colon_pos + 7);
+                                        end_node_name.erase(0, end_node_name.find_first_not_of(" \t"));
+                                        end_node_name.erase(end_node_name.find_last_not_of(" \t") + 1);
+                                    }
+                                } else if (end_line.find("- End:") != string::npos || end_line.find("End:") != string::npos) {
+                                    size_t colon_pos = end_line.find("End:");
+                                    if (colon_pos != string::npos) {
+                                        end_node_name = end_line.substr(colon_pos + 4);
+                                        end_node_name.erase(0, end_node_name.find_first_not_of(" \t"));
+                                        end_node_name.erase(end_node_name.find_last_not_of(" \t") + 1);
+                                    }
+                                }
+                            }
+
+                            // 根据名称映射创建关系边
+                            auto start_it = name_to_id_map.find(start_node_name);
+                            auto end_it = name_to_id_map.find(end_node_name);
+
+                            // 添加调试信息
+                            cout << "Parsing relation: " << relation_part << endl;
+                            cout << "Start node: '" << start_node_name << "' ";
+                            if (start_it != name_to_id_map.end()) {
+                                cout << "(found ID: " << start_it->second << ")";
+                            } else {
+                                cout << "(NOT FOUND)";
+                            }
+                            cout << ", End node: '" << end_node_name << "' ";
+                            if (end_it != name_to_id_map.end()) {
+                                cout << "(found ID: " << end_it->second << ")";
+                            } else {
+                                cout << "(NOT FOUND)";
+                            }
+                            cout << endl;
+
+                            if (start_it != name_to_id_map.end() && end_it != name_to_id_map.end()) {
+                                int start_id = start_it->second;
+                                int end_id = end_it->second;
+                                new_graph.addEdge(start_id, end_id, rel_type);
+                                cout << "Successfully added relation edge between nodes " << start_id << " and " << end_id << endl;
+                            } else {
+                                cout << "Failed to add relation - missing node names" << endl;
+                            }
+                        }
+                    }
+                }
             }
+        }
 
-            if (line.find("Geometry Relations List") != string::npos) {
-                in_elements = false;
-                in_relations = true;
-                element_counter = 1;
-                continue;
-            }
-
-            if (in_elements && !line.empty() && (isdigit(line[0]) || line.find("Point") == 0 || line.find("Circle") == 0 || line.find("Line") == 0)) {
-                parseGeometryElement(line, new_graph, element_counter);
-                element_counter++;
-            }
-
-            if (in_relations && !line.empty() && (isdigit(line[0]) || line.find("on_circle") != string::npos || line.find("distance") != string::npos)) {
-                parseGeometryRelation(line, new_graph, element_counter);
-                element_counter++;
-            }
+        // 验证解析结果
+        cout << "Parsing completed. New graph has:" << endl;
+        cout << "- Nodes: " << new_graph.getNodes().size() << endl;
+        cout << "- Edges: " << new_graph.getEdges().size() << endl;
+        for (const auto& edge : new_graph.getEdges()) {
+            cout << "  Edge " << edge->getId() << ": Node" << edge->getNode1Id()
+                 << " <-> Node" << edge->getNode2Id() << endl;
         }
 
         return new_graph;
     }
 
-    // 解析几何元素行
+    /* 解析几何元素行 (deprecated - no longer used)
     void parseGeometryElement(const string& line, GeometryGraph& graph, int element_id) {
         if (line.find("抛物线") != string::npos) {
             // 如果是新添加的抛物线，创建节点表示
@@ -889,7 +1082,7 @@ private:
                 cout << "LLM parsing: Adding point-on-circle relation" << endl;
             }
         }
-    }
+    }*/
 };
 
 // ========================
@@ -1042,6 +1235,7 @@ public:
         auto center_node = geometry_graph.getNode(center_id);
         center_node->setPosition(0.0, 0.0);
         center_node->getAttributes().setText("role", "center");
+        center_node->getAttributes().setText("name", "center_point");  // 设置全局唯一名称
 
         // 创建圆节点
         int circle_id = geometry_graph.addNode(CIRCLE);
@@ -1049,12 +1243,14 @@ public:
         circle_node->setPosition(0.0, 0.0); // 圆心与圆心点重合
         circle_node->setRadius(50.0);
         circle_node->getAttributes().setText("role", "fixed_circle");
+        circle_node->getAttributes().setText("name", "reference_circle");  // 设置全局唯一名称
 
         // 创建圆上动点
         int moving_point_id = geometry_graph.addNode(POINT);
         auto moving_node = geometry_graph.getNode(moving_point_id);
         moving_node->setPosition(50.0, 0.0); // 初始位置在(50,0)
         moving_node->getAttributes().setText("role", "moving");
+        moving_node->getAttributes().setText("name", "reference_point");  // 设置全局唯一名称
         moving_node->getAttributes().setNumeric("angle", 0.0);
         moving_node->getAttributes().setNumeric("radius", 50.0);
         moving_node->getAttributes().setNumeric("center_x", 0.0);
@@ -1129,6 +1325,9 @@ public:
             }
             cout << endl;
 
+            // 保存动画指令到文件
+            saveAnimationCommandsToFile(all_animation_commands, "animation_commands.txt");
+
             // 更新当前几何图状态
             current_graph = std::move(updated_graph);
         }
@@ -1145,6 +1344,43 @@ public:
     }
 
     // 保存关键帧到文件
+    void saveAnimationCommandsToFile(const vector<AnimationCommand>& commands, const string& filename) {
+        ofstream file(filename);
+        if (!file.is_open()) {
+            cerr << "无法创建动画指令文件: " << filename << endl;
+            return;
+        }
+
+        file << "# 智能几何图动画指令\n";
+        file << "# 生成时间: ";
+
+        // 获取当前时间
+        auto now = chrono::system_clock::now();
+        auto time_t_now = chrono::system_clock::to_time_t(now);
+        file << ctime(&time_t_now);
+
+        file << "\n# 动画指令总数: " << commands.size() << "\n\n";
+
+        for (size_t i = 0; i < commands.size(); ++i) {
+            const auto& cmd = commands[i];
+            file << "指令 " << (i + 1) << ":\n";
+            file << "  类型: " << cmd.command_type << "\n";
+
+            if (!cmd.parameters.empty()) {
+                file << "  参数:\n";
+                for (const auto& [key, value] : cmd.parameters) {
+                    file << "    " << key << " = " << value << "\n";
+                }
+            }
+            file << "\n";
+        }
+
+        file << "# 动画指令结束\n";
+        file.close();
+
+        cout << "动画指令已保存到文件: " << filename << endl;
+    }
+
     void saveKeyframesToFile(const vector<string>& keyframes, const string& filename) {
         ofstream file(filename);
         if (!file.is_open()) {

@@ -118,6 +118,8 @@ Geometry Relations List:
 	std::map<QUESTION, std::string>
 		questionPrompts_; // ### Question
 
+	std::string getQuestion(IterationState& state, std::string newContent);
+
 	// 调用AI的缓存
 	std::string modelStr_;//字符串表示的模型抽取结果
 private:
@@ -189,11 +191,21 @@ private:
 		//prompt << "   - 起始元素\n";
 		prompt << "   - start element\n";
 		//prompt << "   - 目标元素\n";
-		prompt << "   - target element\n";
-		//prompt << "   - 关系描述\n\n";
+		prompt << "   - target element\n\n";
+
+		// 添加约束，只识别关系结构，不识别具体参数
+		prompt << "IMPORTANT CONSTRAINTS:\n";
+		prompt << "- Only identify relation structure and connections\n";
+		prompt << "- Do NOT extract specific parameters (angles, distances, coordinates)\n";
+		prompt << "- Focus on: element types and source-target connections\n";
+		prompt << "- Each geometry element MUST have a UNIQUE identifier name\n";
+		prompt << "- Use descriptive names that can be referenced for parameter extraction\n";
+		prompt << "- Example: 'rotation_motion' connects 'moving_point' to 'new_position'\n";
+		prompt << "- Example: Point names like 'center_point', 'start_point', 'end_point'\n";
+		prompt << "- Parameter extraction is a separate step that uses these identifiers\n\n";
 
 		return prompt.str();
 	}
 
-	std::string getQuestion(IterationState& state, std::string newContent);
+	
 };

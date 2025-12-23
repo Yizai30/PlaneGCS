@@ -1,0 +1,11 @@
+=== 智能几何图动画系统 ===
+基于自然语言理解和PlaneGCS的几何动画
+版本: 1.0
+Warning: Template file layout_generator_v1/Resources/Doc/model_template.json not found, using default geometry graph template
+Warning: Template file layout_generator_v1/Resources/Doc/model_template.json not found, using default geometry graph template
+
+请选择演示模式：
+1. 三循环动画演示 (传统模式)
+2. 解决方案到关键帧演示 (新功能)
+0. 退出
+选择 (0-2): 

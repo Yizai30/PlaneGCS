@@ -17,7 +17,7 @@ struct IterationState {
     GeometryGraph* geometryGraph;  // 使用指针避免不完整类型错误
 
     // 默认构造函数
-    IterationState() : geometryGraph(nullptr) {}
+    IterationState();
 
     // 析构函数
     ~IterationState();

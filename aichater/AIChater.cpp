@@ -9,7 +9,7 @@
 #include <cpprest/http_client.h>
 #include <cpprest/json.h>
 #include <boost/locale/encoding_utf.hpp>
-#include "../examples/llm_geometry_animation.h"  // 包含GeometryGraph完整定义
+#include "../examples/solution_to_keyframes_core.h"  // 包含GeometryGraph完整定义
 
 // 修复的UTF-16到UTF-8转换函数
 static std::string wstringToUTF8(const std::wstring& wstr) {
@@ -166,7 +166,7 @@ std::string AIChater::callDeepseekChat(std::string promptString) {
     std::cout << "Sending prompt: " << promptString << std::endl;
 
     // 设置API Key和API URL
-    const utility::string_t apiKey = U("sk-6ec2c1e1466642bc817ee99f06cdd77c"); // 替换为你的API Key
+    const utility::string_t apiKey = U("sk-8d5f8e73680544879eed40d37b9055f1"); // 替换为你的API Key
     const utility::string_t apiUrl = U("https://api.deepseek.com/chat/completions");
 
     // 创建HTTP客户端配置并设置超时
@@ -300,6 +300,7 @@ bool AIChater::loadJsonFileToString(const std::string& filename, std::string& co
 std::string AIChater::getQuestion(IterationState& state, std::string newContent) {
     std::stringstream prompt;
 
+    prompt << "### Question\n";
     prompt << "**NewContent**:\n";
     prompt << newContent << "\n";
 

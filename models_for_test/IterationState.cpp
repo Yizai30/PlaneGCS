@@ -1,4 +1,10 @@
 #include "IterationState.h"
+#include "../examples/solution_to_keyframes_core.h"
+
+IterationState::IterationState()
+{
+    geometryGraph = new GeometryGraph();
+}
 
 // 析构函数的实现
 IterationState::~IterationState() {
