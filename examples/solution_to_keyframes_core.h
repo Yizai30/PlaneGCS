@@ -66,14 +66,37 @@ public:
         return defaultValue;
     }
 
+    bool hasNumeric(const string& key) const {
+        auto it = attributes_.find(key);
+        if (it != attributes_.end()) {
+            try {
+                any_cast<double>(it->second);
+                return true;
+            } catch (...) {
+                return false;
+            }
+        }
+        return false;
+    }
+
     map<string, any>& getAllAttributes() { return attributes_; }
     const map<string, any>& getAllAttributes() const { return attributes_; }
 };
 
 // 动画指令结构
 struct AnimationCommand {
-    string command_type;
-    map<string, string> parameters;
+    string command_type;                    // 指令类型
+    map<string, string> parameters;         // 通用参数
+    string element_id;                      // 受影响的元素ID（如果有）
+    string element_name;                    // 受影响的元素名称（如果有）
+
+    // 用于存储具体属性的变化
+    struct PropertyChange {
+        string property_name;               // 属性名称
+        string old_value;                   // 旧值
+        string new_value;                   // 新值
+    };
+    vector<PropertyChange> property_changes; // 属性变化列表
 
     AnimationCommand() = default;
     AnimationCommand(const string& type) : command_type(type) {}
@@ -83,7 +106,12 @@ struct AnimationCommand {
 enum GeometryNodeType {
     POINT,
     CIRCLE,
-    LINE
+    LINE,
+    PARABOLA,
+    FOCUS,
+    FOMULA,
+    FUNCTION,
+    DERIVATIVE
 };
 
 // 几何图边类型
@@ -92,7 +120,9 @@ enum GeometryRelationType {
     POINT_ON_CIRCLE,
     TANGENT,
     PARALLEL,
-    PERPENDICULAR
+    PERPENDICULAR,
+    ELEMENT_OF,
+    POINT_ON_CURVE
 };
 
 // 几何图节点
@@ -187,11 +217,57 @@ public:
     }
 };
 
+// 参数抽取器 - 从解决方案文本中抽取几何元素的参数
+class ParameterExtractor {
+private:
+    // 模型库：存储节点类型的参数匹配正则表达式
+    struct NodePattern {
+        GeometryNodeType node_type;
+        vector<string> param_names;      // 参数名称列表
+        string regex_pattern;            // 正则表达式模式
+    };
+
+    // 约束库：存储边类型的参数匹配正则表达式
+    struct EdgePattern {
+        GeometryRelationType relation_type;
+        vector<string> param_names;      // 参数名称列表
+        string regex_pattern;            // 正则表达式模式
+    };
+
+    vector<NodePattern> node_patterns_;
+    vector<EdgePattern> edge_patterns_;
+
+public:
+    ParameterExtractor();
+    ~ParameterExtractor() = default;
+
+    // 初始化默认的正则表达式模式库
+    void initializeDefaultPatterns();
+
+    // 从解决方案文本中抽取参数并更新几何图
+    void extractParameters(GeometryGraph& graph, const string& solution_text);
+
+private:
+    // 为节点抽取参数
+    void extractNodeParameters(GeometryNode* node, const string& solution_text);
+
+    // 为边抽取参数
+    void extractEdgeParameters(GeometryEdge* edge, const string& solution_text,
+                               const GeometryGraph& graph);
+
+    // 根据节点类型查找匹配的模式
+    const NodePattern* findNodePattern(GeometryNodeType type) const;
+
+    // 根据关系类型查找匹配的模式
+    const EdgePattern* findEdgePattern(GeometryRelationType type) const;
+};
+
 // 解决方案到动画关键帧处理器
 class SolutionToKeyframesProcessor {
 private:
     GeometryGraph geometry_graph;
     GeometryConstraintEngine constraint_engine;
+    ParameterExtractor parameter_extractor;  // 参数抽取器
     vector<AnimationCommand> all_animation_commands;
     vector<string> all_keyframes;
 
@@ -206,6 +282,8 @@ public:
     // 保存功能
     void saveAnimationCommandsToFile(const vector<AnimationCommand>& commands, const string& filename);
     void saveKeyframesToFile(const vector<string>& keyframes, const string& filename);
+    void saveGeometryGraphWithAnimationCommand(const GeometryGraph& graph, const string& line_content, int line_index, const string& filename, const AnimationCommand* anim_cmd = nullptr);
+    void clearGeometryGraphFile(const string& filename);
 
 private:
     // LLM处理相关
@@ -223,6 +301,7 @@ private:
     private:
         string callLLMAPI(const string& prompt);
         GeometryGraph parseLLMGeometryGraphResponse(const string& llm_response, const GeometryGraph& current_graph);
+        static string anyToString(const std::any& value);  // 辅助函数
     };
 
     LLMGeometryProcessor llm_processor;

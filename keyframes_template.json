@@ -1,0 +1,12 @@
+[
+  {
+    "frameIndex": 0,
+    "elementId": "Unique for an element.",
+    "elementType": "A string describe this model is what. For example, Scorpion, which has complex skeleton. Another example, Cube, which has simple skeleton with one bone.",
+    "properties": {
+      "property_name": "property_value, which could be various types, such as int, string, list, dict, and so on.",
+      ...
+    }
+  },
+  ...
+]

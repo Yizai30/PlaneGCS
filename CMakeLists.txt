@@ -42,6 +42,12 @@ SET(PlaneGCS_SRCS
     src/SubSystem.h
     src/qp_eq.cpp
     src/qp_eq.h
+    src/AnimationCommand.cpp
+    src/AnimationCommand.h
+    src/KeyframeGenerator.cpp
+    src/KeyframeGenerator.h
+    src/GeometryAnimationBridge.cpp
+    src/GeometryAnimationBridge.h
 )
 #SOURCE_GROUP("PlaneGCS" FILES ${PlaneGCS_SRCS})
 
@@ -77,6 +83,20 @@ add_executable(solution_to_keyframes_demo
     models_for_test/IterationState.cpp
 )
 
+# 添加关键帧生成系统测试程序
+add_executable(test_keyframe_generation
+    examples/test_keyframe_generation.cpp
+)
+
+# 添加关键帧生成示例程序
+add_executable(ex1_point_movement
+    examples/ex1_point_movement.cpp
+)
+
+add_executable(ex2_circle_scaling
+    examples/ex2_circle_scaling.cpp
+)
+
 # 链接LLM几何动画的依赖库
 target_link_libraries(solution_to_keyframes_demo
     PlaneGCS
@@ -87,8 +107,25 @@ target_link_libraries(solution_to_keyframes_demo
     cpprestsdk::cpprest
 )
 
+# 链接测试程序依赖库
+target_link_libraries(test_keyframe_generation
+    PlaneGCS
+    Eigen3::Eigen
+)
+
+# 链接示例程序依赖库
+target_link_libraries(ex1_point_movement
+    PlaneGCS
+    Eigen3::Eigen
+)
+
+target_link_libraries(ex2_circle_scaling
+    PlaneGCS
+    Eigen3::Eigen
+)
+
 # 设置可执行文件的编译选项
-foreach(target solution_to_keyframes_demo)
+foreach(target solution_to_keyframes_demo test_keyframe_generation ex1_point_movement ex2_circle_scaling)
     if(MSVC)
         target_compile_definitions(${target} PRIVATE
             _CRT_SECURE_NO_WARNINGS

@@ -63,30 +63,73 @@ public:
 		};
 		taskExamplePrompts_ = {
 			{TaskExample::GEO_GRAPH_EXTRACT_EXAMPLE, R"(### TaskExample
+
+**Example 1: Only create explicitly mentioned elements**
 **NewContent**:
 - Parabola: $x^2 = 4y$ is a special form of conic section
-**CurGraph**:
-Geometry Elements List:
-Geometry Relations List:
-**NewGraph**:
-Geometry Elements List:
-1.Parabola
-Geometry Relations List:
-
-**NewContent**:
 - Focus: For parabola $x^2 = 4y$, the focus is $F(0,1)$
 **CurGraph**:
 Geometry Elements List:
-1.Parabola
 Geometry Relations List:
 **NewGraph**:
 Geometry Elements List:
-1.Parabola
-2.Focus
+1. Parabola (reference_parabola)
+2. Focus (focus_F)
 Geometry Relations List:
-1.is_element_of
-- Start: Focus
-- Target: Parabola)"}
+1. is_element_of
+- Source: focus_F
+- Target: reference_parabola
+(Note: NO additional points or relations are created, only what was explicitly mentioned)
+
+**Example 2: Add new elements when explicitly stated**
+**NewContent**:
+- Point M is a moving point on the parabola
+- Distance from M to focus F is measured
+**CurGraph**:
+Geometry Elements List:
+1. Parabola (reference_parabola)
+2. Focus (focus_F)
+Geometry Relations List:
+1. is_element_of
+- Source: focus_F
+- Target: reference_parabola
+**NewGraph**:
+Geometry Elements List:
+1. Parabola (reference_parabola)
+2. Focus (focus_F)
+3. Point (moving_point_M)
+Geometry Relations List:
+1. is_element_of
+- Source: focus_F
+- Target: reference_parabola
+2. point_on_curve
+- Source: moving_point_M
+- Target: reference_parabola
+3. distance_between
+- Source: moving_point_M
+- Target: focus_F
+
+**Example 3: Do NOT create elements for abstract concepts**
+**NewContent**:
+- Distance Formula: A method to calculate distance between two points
+- Minimum value problem: Can be solved using derivatives
+**CurGraph**:
+Geometry Elements List:
+1. Parabola (reference_parabola)
+2. Focus (focus_F)
+Geometry Relations List:
+1. is_element_of
+- Source: focus_F
+- Target: reference_parabola
+**NewGraph**:
+Geometry Elements List:
+1. Parabola (reference_parabola)
+2. Focus (focus_F)
+Geometry Relations List:
+1. is_element_of
+- Source: focus_F
+- Target: reference_parabola
+(Note: NO new elements created - 'Distance Formula' and 'Minimum value problem' are concepts, not geometric objects)"}
 		};
 		questionPrompts_ = {
 			{QUESTION::GEO_GRAPH_EXTRACT_QUESTION, getQuestion(state, newContent)}
@@ -189,20 +232,33 @@ private:
 		//prompt << "   - 关系名称（用于标识）\n";
 		prompt << "   - relation name (Used for identification)\n";
 		//prompt << "   - 起始元素\n";
-		prompt << "   - start element\n";
+		prompt << "   - source element (ONE element only)\n";
 		//prompt << "   - 目标元素\n";
-		prompt << "   - target element\n\n";
+		prompt << "   - target element (ONE element only)\n\n";
 
 		// 添加约束，只识别关系结构，不识别具体参数
 		prompt << "IMPORTANT CONSTRAINTS:\n";
+		prompt << "- ONLY create geometry elements that are EXPLICITLY mentioned in NewContent\n";
+		prompt << "- Do NOT create elements based on assumptions or general knowledge\n";
+		prompt << "- If NewContent only mentions a parabola and its focus, create ONLY those two elements\n";
+		prompt << "- Do NOT add hypothetical points (like 'moving_point_M') unless explicitly stated\n";
 		prompt << "- Only identify relation structure and connections\n";
 		prompt << "- Do NOT extract specific parameters (angles, distances, coordinates)\n";
 		prompt << "- Focus on: element types and source-target connections\n";
 		prompt << "- Each geometry element MUST have a UNIQUE identifier name\n";
 		prompt << "- Use descriptive names that can be referenced for parameter extraction\n";
 		prompt << "- Example: 'rotation_motion' connects 'moving_point' to 'new_position'\n";
-		prompt << "- Example: Point names like 'center_point', 'start_point', 'end_point'\n";
-		prompt << "- Parameter extraction is a separate step that uses these identifiers\n\n";
+		prompt << "- Example: Point names like 'center_point', 'source_point', 'target_point'\n";
+		prompt << "- Parameter extraction is a separate step that uses these identifiers\n";
+		prompt << "- CRITICAL: Each relation MUST have EXACTLY ONE source and EXACTLY ONE target\n";
+		prompt << "- CRITICAL: Do NOT list parameters (like 'Distance_MF') as separate target elements\n";
+		prompt << "- CRITICAL: If a relation involves measurements, the measurement is stored as a parameter, not a target\n";
+		prompt << "- CRITICAL: Do NOT create relations for elements that don't exist yet\n";
+		prompt << "- Example format:\n";
+		prompt << "  1. distance_between\n";
+		prompt << "  - Source: Point_M\n";
+		prompt << "  - Target: Focus_F\n";
+		prompt << "  (Do NOT add a second Target like 'Distance_MF')\n\n";
 
 		return prompt.str();
 	}

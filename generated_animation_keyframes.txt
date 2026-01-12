@@ -1,13 +1,332 @@
-# 智能几何图动画关键帧数据
-# 生成时间: Tue Dec 23 12:09:29 2025
-
-# 关键帧总数: 6
-
-Keyframe 1: t=0, x=50, y=0
-Keyframe 2: t=1, x=43.3013, y=25
-Keyframe 3: t=2, x=25, y=43.3013
-Keyframe 4: t=3, x=2.24483e-09, y=50
-Keyframe 5: t=4, x=-25, y=43.3013
-Keyframe 6: t=5, x=-43.3013, y=25
-
-# 关键帧数据结束
+[
+  {
+    "frameIndex": 0,
+    "elementId": "",
+    "elementType": "MODIFY_STRUCTURE",
+    "properties": {
+      "elementName": "",
+      "progress": 0,
+      "new_node_count": "5",
+      "old_node_count": "3"
+    }
+  },
+  {
+    "frameIndex": 1,
+    "elementId": "",
+    "elementType": "MODIFY_STRUCTURE",
+    "properties": {
+      "elementName": "",
+      "progress": 0.111111,
+      "new_node_count": "5",
+      "old_node_count": "3"
+    }
+  },
+  {
+    "frameIndex": 2,
+    "elementId": "",
+    "elementType": "MODIFY_STRUCTURE",
+    "properties": {
+      "elementName": "",
+      "progress": 0.222222,
+      "new_node_count": "5",
+      "old_node_count": "3"
+    }
+  },
+  {
+    "frameIndex": 3,
+    "elementId": "",
+    "elementType": "MODIFY_STRUCTURE",
+    "properties": {
+      "elementName": "",
+      "progress": 0.333333,
+      "new_node_count": "5",
+      "old_node_count": "3"
+    }
+  },
+  {
+    "frameIndex": 4,
+    "elementId": "",
+    "elementType": "MODIFY_STRUCTURE",
+    "properties": {
+      "elementName": "",
+      "progress": 0.444444,
+      "new_node_count": "5",
+      "old_node_count": "3"
+    }
+  },
+  {
+    "frameIndex": 5,
+    "elementId": "",
+    "elementType": "MODIFY_STRUCTURE",
+    "properties": {
+      "elementName": "",
+      "progress": 0.555556,
+      "new_node_count": "5",
+      "old_node_count": "3"
+    }
+  },
+  {
+    "frameIndex": 6,
+    "elementId": "",
+    "elementType": "MODIFY_STRUCTURE",
+    "properties": {
+      "elementName": "",
+      "progress": 0.666667,
+      "new_node_count": "5",
+      "old_node_count": "3"
+    }
+  },
+  {
+    "frameIndex": 7,
+    "elementId": "",
+    "elementType": "MODIFY_STRUCTURE",
+    "properties": {
+      "elementName": "",
+      "progress": 0.777778,
+      "new_node_count": "5",
+      "old_node_count": "3"
+    }
+  },
+  {
+    "frameIndex": 8,
+    "elementId": "",
+    "elementType": "MODIFY_STRUCTURE",
+    "properties": {
+      "elementName": "",
+      "progress": 0.888889,
+      "new_node_count": "5",
+      "old_node_count": "3"
+    }
+  },
+  {
+    "frameIndex": 9,
+    "elementId": "",
+    "elementType": "MODIFY_STRUCTURE",
+    "properties": {
+      "elementName": "",
+      "progress": 1,
+      "new_node_count": "5",
+      "old_node_count": "3"
+    }
+  },
+  {
+    "frameIndex": 10,
+    "elementId": "",
+    "elementType": "MODIFY_STRUCTURE",
+    "properties": {
+      "elementName": "",
+      "progress": 0,
+      "new_node_count": "11",
+      "old_node_count": "5"
+    }
+  },
+  {
+    "frameIndex": 11,
+    "elementId": "",
+    "elementType": "MODIFY_STRUCTURE",
+    "properties": {
+      "elementName": "",
+      "progress": 0.111111,
+      "new_node_count": "11",
+      "old_node_count": "5"
+    }
+  },
+  {
+    "frameIndex": 12,
+    "elementId": "",
+    "elementType": "MODIFY_STRUCTURE",
+    "properties": {
+      "elementName": "",
+      "progress": 0.222222,
+      "new_node_count": "11",
+      "old_node_count": "5"
+    }
+  },
+  {
+    "frameIndex": 13,
+    "elementId": "",
+    "elementType": "MODIFY_STRUCTURE",
+    "properties": {
+      "elementName": "",
+      "progress": 0.333333,
+      "new_node_count": "11",
+      "old_node_count": "5"
+    }
+  },
+  {
+    "frameIndex": 14,
+    "elementId": "",
+    "elementType": "MODIFY_STRUCTURE",
+    "properties": {
+      "elementName": "",
+      "progress": 0.444444,
+      "new_node_count": "11",
+      "old_node_count": "5"
+    }
+  },
+  {
+    "frameIndex": 15,
+    "elementId": "",
+    "elementType": "MODIFY_STRUCTURE",
+    "properties": {
+      "elementName": "",
+      "progress": 0.555556,
+      "new_node_count": "11",
+      "old_node_count": "5"
+    }
+  },
+  {
+    "frameIndex": 16,
+    "elementId": "",
+    "elementType": "MODIFY_STRUCTURE",
+    "properties": {
+      "elementName": "",
+      "progress": 0.666667,
+      "new_node_count": "11",
+      "old_node_count": "5"
+    }
+  },
+  {
+    "frameIndex": 17,
+    "elementId": "",
+    "elementType": "MODIFY_STRUCTURE",
+    "properties": {
+      "elementName": "",
+      "progress": 0.777778,
+      "new_node_count": "11",
+      "old_node_count": "5"
+    }
+  },
+  {
+    "frameIndex": 18,
+    "elementId": "",
+    "elementType": "MODIFY_STRUCTURE",
+    "properties": {
+      "elementName": "",
+      "progress": 0.888889,
+      "new_node_count": "11",
+      "old_node_count": "5"
+    }
+  },
+  {
+    "frameIndex": 19,
+    "elementId": "",
+    "elementType": "MODIFY_STRUCTURE",
+    "properties": {
+      "elementName": "",
+      "progress": 1,
+      "new_node_count": "11",
+      "old_node_count": "5"
+    }
+  },
+  {
+    "frameIndex": 20,
+    "elementId": "",
+    "elementType": "MODIFY_STRUCTURE",
+    "properties": {
+      "elementName": "",
+      "progress": 0,
+      "new_node_count": "14",
+      "old_node_count": "11"
+    }
+  },
+  {
+    "frameIndex": 21,
+    "elementId": "",
+    "elementType": "MODIFY_STRUCTURE",
+    "properties": {
+      "elementName": "",
+      "progress": 0.111111,
+      "new_node_count": "14",
+      "old_node_count": "11"
+    }
+  },
+  {
+    "frameIndex": 22,
+    "elementId": "",
+    "elementType": "MODIFY_STRUCTURE",
+    "properties": {
+      "elementName": "",
+      "progress": 0.222222,
+      "new_node_count": "14",
+      "old_node_count": "11"
+    }
+  },
+  {
+    "frameIndex": 23,
+    "elementId": "",
+    "elementType": "MODIFY_STRUCTURE",
+    "properties": {
+      "elementName": "",
+      "progress": 0.333333,
+      "new_node_count": "14",
+      "old_node_count": "11"
+    }
+  },
+  {
+    "frameIndex": 24,
+    "elementId": "",
+    "elementType": "MODIFY_STRUCTURE",
+    "properties": {
+      "elementName": "",
+      "progress": 0.444444,
+      "new_node_count": "14",
+      "old_node_count": "11"
+    }
+  },
+  {
+    "frameIndex": 25,
+    "elementId": "",
+    "elementType": "MODIFY_STRUCTURE",
+    "properties": {
+      "elementName": "",
+      "progress": 0.555556,
+      "new_node_count": "14",
+      "old_node_count": "11"
+    }
+  },
+  {
+    "frameIndex": 26,
+    "elementId": "",
+    "elementType": "MODIFY_STRUCTURE",
+    "properties": {
+      "elementName": "",
+      "progress": 0.666667,
+      "new_node_count": "14",
+      "old_node_count": "11"
+    }
+  },
+  {
+    "frameIndex": 27,
+    "elementId": "",
+    "elementType": "MODIFY_STRUCTURE",
+    "properties": {
+      "elementName": "",
+      "progress": 0.777778,
+      "new_node_count": "14",
+      "old_node_count": "11"
+    }
+  },
+  {
+    "frameIndex": 28,
+    "elementId": "",
+    "elementType": "MODIFY_STRUCTURE",
+    "properties": {
+      "elementName": "",
+      "progress": 0.888889,
+      "new_node_count": "14",
+      "old_node_count": "11"
+    }
+  },
+  {
+    "frameIndex": 29,
+    "elementId": "",
+    "elementType": "MODIFY_STRUCTURE",
+    "properties": {
+      "elementName": "",
+      "progress": 1,
+      "new_node_count": "14",
+      "old_node_count": "11"
+    }
+  }
+]
