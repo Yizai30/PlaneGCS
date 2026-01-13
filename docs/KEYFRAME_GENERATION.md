@@ -267,6 +267,99 @@ public:
 
 Part of PlaneGCS, licensed under LGPL v2.
 
+## Animation Command Coordination
+
+The system includes a coordinator that analyzes dependencies and conflicts between animation commands to determine optimal execution timing.
+
+### Coordination Features
+
+**Dependency Analysis**:
+- Detects when commands affect the same element
+- Identifies sequential dependencies (e.g., point movement after circle scaling)
+- Builds dependency graph for command scheduling
+
+**Conflict Detection**:
+- Identifies contradictory commands (e.g., ADD_ELEMENT and REMOVE_ELEMENT for same element)
+- Detects conflicting movements (multiple MOVE_LINEAR for same point)
+- Prevents impossible animation sequences
+
+**Timing Patterns**:
+- **SEQUENTIAL**: Commands execute one after another (dependent operations)
+- **SIMULTANEOUS**: Commands execute concurrently (independent elements)
+- **OVERLAPPING**: Commands have partial timing overlap (future enhancement)
+
+**Command Merging**:
+- Combines compatible commands affecting the same element
+- Merges multiple property changes into single animation
+- Reduces command count and improves efficiency
+
+### Using the Coordinator
+
+The coordinator is automatically used by the bridge layer:
+
+```cpp
+#include "GeometryAnimationBridge.h"
+
+GCS::GeometryAnimationBridge bridge;
+// Coordinator is invoked automatically in generateAnimationKeyframes()
+std::string json = bridge.generateAnimationKeyframes(old_graph, new_graph, config);
+```
+
+For manual coordination:
+
+```cpp
+#include "AnimationCommandCoordinator.h"
+
+GCS::AnimationCommandCoordinator coordinator;
+
+// Coordinate commands
+auto schedules = coordinator.coordinateCommands(commands, frames_per_command);
+
+// Check results
+for (const auto& schedule : schedules) {
+    std::cout << "Command " << schedule.command_index
+              << ": frames " << schedule.start_frame
+              << " to " << schedule.end_frame << std::endl;
+    if (!schedule.dependencies.empty()) {
+        std::cout << "  Depends on: ";
+        for (int dep : schedule.dependencies) {
+            std::cout << dep << " ";
+        }
+        std::cout << std::endl;
+    }
+}
+```
+
+### Coordination Algorithm
+
+The coordinator uses a heuristic-based approach:
+
+1. **Element Matching**: Commands affecting same element ID are marked as related
+2. **Conflict Check**: Same-element commands with incompatible types are flagged
+3. **Dependency Building**: Dependencies are added based on element relationships
+4. **Timing Calculation**: Frame indices are calculated based on dependency depth
+5. **Schedule Validation**: All schedules are validated for correctness
+
+This approach ensures:
+- No two commands try to modify the same element simultaneously
+- Dependent operations execute in correct order
+- Independent operations can run simultaneously
+- Animation timing reflects geometric relationships
+
+### Limitations
+
+Current coordination implementation:
+- Uses simple element ID matching for dependency detection
+- No geometric constraint analysis (e.g., point-on-circle relationships)
+- Does not automatically generate overlapping timing
+- Conflict detection is conservative (may over-report conflicts)
+
+Future enhancements could add:
+- Geometric relationship analysis
+- Transitive dependency detection
+- Automatic overlap timing optimization
+- User-specified timing overrides
+
 ## Troubleshooting
 
 ### Common Issues and Solutions
@@ -368,7 +461,8 @@ graph2.addNode(1, GeometryTypes::POINT, 10.0, 10.0);
 ### Known Limitations
 
 - ROTATE_ON_CIRCLE detection is simplified (may detect as MOVE_LINEAR)
-- No automatic conflict resolution (conflicts are reported)
+- Dependency analysis is heuristic-based (element ID matching)
+- No geometric constraint relationship analysis (point-on-circle, etc.)
 - Attribute-based commands (ADD_ATTRIBUTE, MODIFY_ATTRIBUTE) are placeholders
 - Structure-based commands (MODIFY_STRUCTURE) are placeholders
-- No concurrent/overlapping animation support yet (Section 4 not implemented)
+- Overlapping timing not automatically generated (only sequential or simultaneous)

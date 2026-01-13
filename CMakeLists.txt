@@ -48,6 +48,8 @@ SET(PlaneGCS_SRCS
     src/KeyframeGenerator.h
     src/GeometryAnimationBridge.cpp
     src/GeometryAnimationBridge.h
+    src/AnimationCommandCoordinator.cpp
+    src/AnimationCommandCoordinator.h
 )
 #SOURCE_GROUP("PlaneGCS" FILES ${PlaneGCS_SRCS})
 

@@ -12,6 +12,7 @@
 #define PLANEGCS_GEOMETRYANIMATIONBRIDGE_H
 
 #include "AnimationCommand.h"
+#include "AnimationCommandCoordinator.h"
 #include "KeyframeGenerator.h"
 #include <vector>
 #include <string>
