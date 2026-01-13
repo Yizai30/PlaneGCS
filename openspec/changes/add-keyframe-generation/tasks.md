@@ -99,15 +99,15 @@
 - [x] 8.8 Create example: simple point movement - examples/ex1_point_movement.cpp
 - [x] 8.9 Create example: circle radius scaling - examples/ex2_circle_scaling.cpp
 - [x] 8.10 Create example: circular motion - examples/ex3_circular_motion.cpp
-- [ ] 8.11 Create example: concurrent independent animations
+- [x] 8.11 Create example: concurrent independent animations - examples/ex4_concurrent_animations.cpp
 - [ ] 8.12 Create example: sequential dependent animations
 - [ ] 8.13 Create example: complex multi-step animation
 
 ## 9. Testing and Validation
 - [x] 9.1 Add unit tests for AnimationCommandDetector (9 command types) - examples/test_detector.cpp
 - [x] 9.2 Add unit tests for concurrent property changes in commands - examples/test_detector.cpp
-- [ ] 9.3 Add unit tests for KeyframeGenerator interpolation
-- [ ] 9.4 Add unit tests for JSON serialization
+- [x] 9.3 Add unit tests for KeyframeGenerator interpolation - examples/test_keyframe_generator.cpp
+- [x] 9.4 Add unit tests for JSON serialization - examples/test_keyframe_generator.cpp
 - [ ] 9.5 Add unit tests for AnimationCommandCoordinator (dependency, conflict, merging)
 - [ ] 9.6 Add integration tests for bridge layer
 - [ ] 9.7 Add tests with real geometric graphs from LLM output

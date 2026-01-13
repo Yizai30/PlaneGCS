@@ -147,6 +147,25 @@ public:
      */
     std::string serializeToJSON(const std::vector<Keyframe>& keyframes) const;
 
+    /**
+     * @brief Validates a keyframe for correctness
+     *
+     * Checks that the keyframe has valid frameIndex, progress range,
+     * and required fields populated.
+     *
+     * @param kf Keyframe to validate
+     * @return true if valid, false otherwise
+     */
+    bool validateKeyframe(const Keyframe& kf) const;
+
+    /**
+     * @brief Validates all keyframes in a list
+     *
+     * @param keyframes List of keyframes to validate
+     * @return true if all valid, false otherwise
+     */
+    bool validateAllKeyframes(const std::vector<Keyframe>& keyframes) const;
+
 private:
     KeyframeGenerationConfig config_;
 
@@ -196,25 +215,6 @@ private:
      */
     std::string calculateCurrentValue(const PropertyChange& change,
                                      double progress) const;
-
-    /**
-     * @brief Validates a keyframe for correctness
-     *
-     * Checks that the keyframe has valid frameIndex, progress range,
-     * and required fields populated.
-     *
-     * @param kf Keyframe to validate
-     * @return true if valid, false otherwise
-     */
-    bool validateKeyframe(const Keyframe& kf) const;
-
-    /**
-     * @brief Validates all keyframes in a list
-     *
-     * @param keyframes List of keyframes to validate
-     * @return true if all valid, false otherwise
-     */
-    bool validateAllKeyframes(const std::vector<Keyframe>& keyframes) const;
 };
 
 } // namespace GCS
