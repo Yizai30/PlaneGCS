@@ -54,10 +54,10 @@
 - [x] 4.5 Determine execution timing: sequential, simultaneous, or overlapping
 - [x] 4.6 Generate command scheduling metadata (start frame, end frame, dependencies)
 - [x] 4.7 Add validation for command dependencies and conflicts
-- [ ] 4.8 Add unit tests for dependency detection (e.g., point on circle)
-- [ ] 4.9 Add unit tests for independent command detection (concurrent execution)
-- [ ] 4.10 Add unit tests for conflict detection and error reporting
-- [ ] 4.11 Add unit tests for command merging (multiple property changes)
+- [x] 4.8 Add unit tests for dependency detection (e.g., point on circle) - examples/test_coordinator.cpp
+- [x] 4.9 Add unit tests for independent command detection (concurrent execution) - examples/test_coordinator.cpp
+- [x] 4.10 Add unit tests for conflict detection and error reporting - examples/test_coordinator.cpp
+- [x] 4.11 Add unit tests for command merging (multiple property changes) - examples/test_coordinator.cpp
 
 ## 5. Bridge Layer Integration
 - [x] 5.1 Implement `GeometryAnimationBridge` class in `src/GeometryAnimationBridge.h` and `src/GeometryAnimationBridge.cpp`
@@ -98,14 +98,14 @@
 - [x] 8.7 Add troubleshooting guide for common issues - Added to docs/KEYFRAME_GENERATION.md
 - [x] 8.8 Create example: simple point movement - examples/ex1_point_movement.cpp
 - [x] 8.9 Create example: circle radius scaling - examples/ex2_circle_scaling.cpp
-- [ ] 8.10 Create example: circular motion
+- [x] 8.10 Create example: circular motion - examples/ex3_circular_motion.cpp
 - [ ] 8.11 Create example: concurrent independent animations
 - [ ] 8.12 Create example: sequential dependent animations
 - [ ] 8.13 Create example: complex multi-step animation
 
 ## 9. Testing and Validation
-- [ ] 9.1 Add unit tests for AnimationCommandDetector (9 command types)
-- [ ] 9.2 Add unit tests for concurrent property changes in commands
+- [x] 9.1 Add unit tests for AnimationCommandDetector (9 command types) - examples/test_detector.cpp
+- [x] 9.2 Add unit tests for concurrent property changes in commands - examples/test_detector.cpp
 - [ ] 9.3 Add unit tests for KeyframeGenerator interpolation
 - [ ] 9.4 Add unit tests for JSON serialization
 - [ ] 9.5 Add unit tests for AnimationCommandCoordinator (dependency, conflict, merging)

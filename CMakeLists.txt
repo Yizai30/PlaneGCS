@@ -99,6 +99,21 @@ add_executable(ex2_circle_scaling
     examples/ex2_circle_scaling.cpp
 )
 
+# 添加圆周运动示例程序
+add_executable(ex3_circular_motion
+    examples/ex3_circular_motion.cpp
+)
+
+# 添加动画命令协调器单元测试程序
+add_executable(test_coordinator
+    examples/test_coordinator.cpp
+)
+
+# 添加动画命令检测器单元测试程序
+add_executable(test_detector
+    examples/test_detector.cpp
+)
+
 # 链接LLM几何动画的依赖库
 target_link_libraries(solution_to_keyframes_demo
     PlaneGCS
@@ -126,8 +141,25 @@ target_link_libraries(ex2_circle_scaling
     Eigen3::Eigen
 )
 
+target_link_libraries(ex3_circular_motion
+    PlaneGCS
+    Eigen3::Eigen
+)
+
+# 链接协调器测试程序依赖库
+target_link_libraries(test_coordinator
+    PlaneGCS
+    Eigen3::Eigen
+)
+
+# 链接检测器测试程序依赖库
+target_link_libraries(test_detector
+    PlaneGCS
+    Eigen3::Eigen
+)
+
 # 设置可执行文件的编译选项
-foreach(target solution_to_keyframes_demo test_keyframe_generation ex1_point_movement ex2_circle_scaling)
+foreach(target solution_to_keyframes_demo test_keyframe_generation ex1_point_movement ex2_circle_scaling ex3_circular_motion test_coordinator test_detector)
     if(MSVC)
         target_compile_definitions(${target} PRIVATE
             _CRT_SECURE_NO_WARNINGS
