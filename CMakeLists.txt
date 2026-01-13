@@ -3,6 +3,15 @@ project(PlaneGCS CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Version information
+set(PlaneGCS_VERSION_MAJOR 1)
+set(PlaneGCS_VERSION_MINOR 0)
+set(PlaneGCS_VERSION_PATCH 0)
+set(PlaneGCS_VERSION "${PlaneGCS_VERSION_MAJOR}.${PlaneGCS_VERSION_MINOR}.${PlaneGCS_VERSION_PATCH}")
+set(PlaneGCS_VERSION_FULL "${PlaneGCS_VERSION}-keyframe-generation")
+
+message(STATUS "PlaneGCS Version: ${PlaneGCS_VERSION_FULL}")
+
 # vcpkg integration
 if(DEFINED CMAKE_TOOLCHAIN_FILE)
     message(STATUS "Using vcpkg toolchain: ${CMAKE_TOOLCHAIN_FILE}")
@@ -109,6 +118,16 @@ add_executable(ex4_concurrent_animations
     examples/ex4_concurrent_animations.cpp
 )
 
+# 添加顺序动画示例程序
+add_executable(ex5_sequential_animations
+    examples/ex5_sequential_animations.cpp
+)
+
+# 添加复杂多步动画示例程序
+add_executable(ex6_complex_animation
+    examples/ex6_complex_animation.cpp
+)
+
 # 添加动画命令协调器单元测试程序
 add_executable(test_coordinator
     examples/test_coordinator.cpp
@@ -122,6 +141,11 @@ add_executable(test_detector
 # 添加关键帧生成器单元测试程序
 add_executable(test_keyframe_generator
     examples/test_keyframe_generator.cpp
+)
+
+# 添加边界情况测试程序
+add_executable(test_edge_cases
+    examples/test_edge_cases.cpp
 )
 
 # 链接LLM几何动画的依赖库
@@ -161,6 +185,16 @@ target_link_libraries(ex4_concurrent_animations
     Eigen3::Eigen
 )
 
+target_link_libraries(ex5_sequential_animations
+    PlaneGCS
+    Eigen3::Eigen
+)
+
+target_link_libraries(ex6_complex_animation
+    PlaneGCS
+    Eigen3::Eigen
+)
+
 # 链接协调器测试程序依赖库
 target_link_libraries(test_coordinator
     PlaneGCS
@@ -179,8 +213,14 @@ target_link_libraries(test_keyframe_generator
     Eigen3::Eigen
 )
 
+# 链接边界情况测试程序依赖库
+target_link_libraries(test_edge_cases
+    PlaneGCS
+    Eigen3::Eigen
+)
+
 # 设置可执行文件的编译选项
-foreach(target solution_to_keyframes_demo test_keyframe_generation ex1_point_movement ex2_circle_scaling ex3_circular_motion ex4_concurrent_animations test_coordinator test_detector test_keyframe_generator)
+foreach(target solution_to_keyframes_demo test_keyframe_generation ex1_point_movement ex2_circle_scaling ex3_circular_motion ex4_concurrent_animations ex5_sequential_animations ex6_complex_animation test_coordinator test_detector test_keyframe_generator test_edge_cases)
     if(MSVC)
         target_compile_definitions(${target} PRIVATE
             _CRT_SECURE_NO_WARNINGS
